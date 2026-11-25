@@ -23,8 +23,13 @@ jobs:
 
   
 
-      - run: sdkmanager 'platforms;android-35' 'build-tools;35.0.0'
-
+      -       - name: Configure Android SDK
+        run: |
+          SDK="${ANDROID_HOME:-/usr/local/lib/android/sdk}"
+          if [ ! -d "$SDK/platforms/android-35" ] || [ ! -d "$SDK/build-tools/35.0.0" ]; then
+            MANAGER=$(find "$SDK/cmdline-tools" -name sdkmanager -type f | sort -V | tail -1)
+            "$MANAGER" "platforms;android-35" "build-tools;35.0.0"
+          fi
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.9'
