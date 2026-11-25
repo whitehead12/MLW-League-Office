@@ -1,5 +1,5 @@
-name: Build MLW APK
 
+name: Build MLW APK
 on:
   push:
   workflow_dispatch:
@@ -9,7 +9,7 @@ permissions:
 
 jobs:
   apk:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
 
@@ -21,15 +21,18 @@ jobs:
           distribution: temurin
           java-version: '17'
 
-  
-
-      -       - name: Configure Android SDK
+      - name: Configure Android SDK
+        shell: bash
         run: |
           SDK="${ANDROID_HOME:-/usr/local/lib/android/sdk}"
-          if [ ! -d "$SDK/platforms/android-35" ] || [ ! -d "$SDK/build-tools/35.0.0" ]; then
+          echo "ANDROID_HOME=$SDK" >> "$GITHUB_ENV"
+          echo "sdk.dir=$SDK" > android-project/local.properties
+          if [ ! -d "$SDK/platforms/android-35" ] || [ ! -d "$SDK/build-tools/34.0.0" ]; then
             MANAGER=$(find "$SDK/cmdline-tools" -name sdkmanager -type f | sort -V | tail -1)
-            "$MANAGER" "platforms;android-35" "build-tools;35.0.0"
+            test -x "$MANAGER"
+            "$MANAGER" --sdk_root="$SDK" "platforms;android-35" "build-tools;34.0.0"
           fi
+
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.9'
@@ -45,3 +48,5 @@ jobs:
         with:
           name: MLW-League-Office-APK
           path: MLW-League-Office.apk
+          if-no-files-found: error
+          
